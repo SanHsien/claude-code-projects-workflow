@@ -1,0 +1,26 @@
+{
+  "base": "main",
+  "branch_prefix": "task/",
+  "worktree_root": "",
+  "context_file": "PROJECT_CONTEXT.md",
+  "tasks": [
+    {
+      "id": "api-pagination",
+      "goal": "Add cursor pagination to GET /items. Keep the response shape backward compatible.",
+      "paths": ["src/api/**", "tests/api/**"],
+      "verify": "python -m pytest tests/api -q"
+    },
+    {
+      "id": "ui-empty-state",
+      "goal": "Show an empty-state message on the items page when the list is empty.",
+      "paths": ["web/src/pages/items/**", "web/tests/items/**"],
+      "verify": "npm --prefix web test -- items"
+    },
+    {
+      "id": "docs-pagination",
+      "goal": "Document the new pagination parameters.",
+      "paths": ["docs/api/items.md"],
+      "verify": "python tools/check_links.py"
+    }
+  ]
+}
