@@ -4,6 +4,17 @@ English | [中文版](CHANGELOG.md)
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## 2026-10-24
+
+### Fixed
+
+- `tools/dev_check.ps1`: when `-BaseRef` points to a commit that no longer exists (e.g. after a force push), every gate passed but the script exited 1; it now ends with an explicit `exit 0`.
+
+### Changed
+
+- CI actions bumped to `checkout` v7 / `setup-python` v7, pinned to commit SHAs, with `persist-credentials` off.
+- Added `.github/dependabot.yml` (GitHub Actions, weekly) and CodeQL scanning (Python, Actions).
+
 ## 2026-10-19
 
 ### Added

@@ -29,3 +29,5 @@ if (-not [string]::IsNullOrWhiteSpace($BaseRef) -and $BaseRef -notmatch '^0+$') 
     }
 }
 Write-Host 'dev_check: all gates passed'
+# A missing BaseRef (e.g. after a force push) leaves rev-parse's exit code in $LASTEXITCODE.
+exit 0

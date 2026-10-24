@@ -4,6 +4,17 @@
 
 格式參考 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，新的在上面。
 
+## 2026-10-24
+
+### 修正
+
+- `tools/dev_check.ps1`：`-BaseRef` 指向已不存在的 commit（例如 force push 之後）時，所有檢查都通過卻以結束碼 1 結束；改為明確 `exit 0`。
+
+### 變更
+
+- CI 的 actions 升到 `checkout` v7／`setup-python` v7 並釘 commit SHA，關閉 `persist-credentials`。
+- 新增 `.github/dependabot.yml`（GitHub Actions，每週）與 CodeQL 掃描（Python、Actions）。
+
 ## 2026-10-19
 
 ### 新增
