@@ -88,6 +88,7 @@ python worktree_tasks.py lint plan.json --json
   and can still break together — run the full test suite after merging.
 - `lint`'s "may overlap" is conservative and can be a false positive; it warns and does not block `up`.
 - It does not launch agents, call any model API, or merge for you.
+- It covers parallel work in **local worktrees**. Claude Code Projects cloud threads run on their own cloud branches, outside your local worktrees, so this tool cannot see them; put their scope boundaries in the project instructions and let the PR flow catch conflicts.
 
 ## Related
 

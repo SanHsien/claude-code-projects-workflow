@@ -4,6 +4,17 @@
 
 格式參考 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，新的在上面。
 
+## 2026-10-25
+
+### 修正
+
+- `docs/background-notes.md`：對照 Claude Code Projects 與 worktrees 官方文件逐項校正。更正協調者只看得到 Thread 回報、共享記憶是專案指令加專案記憶（不是 repo 的 `MEMORY.md`）、雲端 Thread 只讀 `CLAUDE.md` 而不載入 skills／hooks／`.mcp.json`／`settings.json`；補上可改跑本機的 Thread、auto-fix、beta 與方案限制、`claude --worktree`。
+- README 的「邊界」補一條：雲端 Thread 不在本機 worktree 裡，本工具檢查不到。
+
+### 變更
+
+- `.github/dependabot.yml` 加 `fleet-waiver: freshness`：本 repo 零依賴，沒有套件宣告可比對下限。
+
 ## 2026-10-24
 
 ### 修正

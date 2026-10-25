@@ -1,3 +1,4 @@
+# fleet-waiver: freshness -- 零依賴專案，沒有套件宣告可以拿來跟現行版比對下限；唯一的版本釘選是 workflow 的 action，由下方 Dependabot 推進
 version: 2
 updates:
   - package-ecosystem: github-actions

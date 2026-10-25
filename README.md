@@ -123,6 +123,7 @@ python worktree_tasks.py lint plan.json --json
   合併不會衝突，但可能一起壞掉——這要靠合併後跑完整測試。
 - `lint` 的「可能重疊」是保守估計，會有誤報；它是警告，不擋 `up`。
 - 不負責啟動 agent、不呼叫任何模型 API、不自動合併。
+- 管的是**本機 worktree** 的平行工作。Claude Code Projects 的雲端 Thread 各自在雲端分支上跑，不在你本機的 worktree 裡，這個工具檢查不到；它們的分工邊界要寫進專案指令，合併前衝突由 PR 流程處理。
 
 ## 和其他工具的關係
 

@@ -4,6 +4,17 @@ English | [中文版](CHANGELOG.md)
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## 2026-10-25
+
+### Fixed
+
+- `docs/background-notes.md`: checked item by item against the official Claude Code Projects and worktrees docs. Corrected that the coordinator only sees what threads report back, that shared memory is project instructions plus project memory (not a repo `MEMORY.md`), and that cloud threads read only `CLAUDE.md` and do not load skills, hooks, `.mcp.json` or `settings.json`; added threads that can run locally, auto-fix, beta and plan limits, and `claude --worktree`.
+- README "Limits": added that cloud threads do not live in local worktrees, so this tool cannot check them.
+
+### Changed
+
+- `.github/dependabot.yml`: added `fleet-waiver: freshness` — this repo has zero dependencies, so there is no package declaration to compare against.
+
 ## 2026-10-24
 
 ### Fixed
