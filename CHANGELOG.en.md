@@ -4,6 +4,13 @@ English | [中文版](CHANGELOG.md)
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## 2026-10-26
+
+### Fixed
+
+- `worktree_tasks.py`: with non-ASCII file names (e.g. Chinese), `lint` missed files claimed by two tasks, `check` reported in-scope files as outside the task's paths, and uncommitted files showed up as `\346\226\207...` escapes. Now reads real names with `-z`.
+- A task id with a trailing newline (`"api\n"`) no longer passes validation; Windows reserved names (`con`, `nul`, `com1`...) are rejected up front instead of failing when `up` creates the folder; a `branch_prefix` that yields an invalid branch name is reported by `lint`/`up` instead of crashing midway.
+
 ## 2026-10-25
 
 ### Fixed

@@ -25,6 +25,9 @@ from pathlib import Path
 BRIEF_NAME = ".parallel-task.md"
 TASK_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,47}$")
 WILDCARDS = set("*?[")
+# Windows 保留的裝置名稱：不能當資料夾名，`git worktree add` 會在 Windows 上失敗
+WINDOWS_RESERVED = {"con", "prn", "aux", "nul", *(f"com{i}" for i in range(1, 10)),
+                    *(f"lpt{i}" for i in range(1, 10))}
 
 
 class UsageError(Exception):
@@ -132,7 +135,8 @@ def ref_exists(repo: Path, ref: str) -> bool:
 
 
 def tracked_files(repo: Path, ref: str) -> list[str]:
-    return [f for f in git(repo, "ls-tree", "-r", "--name-only", ref).stdout.splitlines() if f]
+    # -z：否則 git 會把非 ASCII 檔名輸出成 "\344\270..." 的跳脫字串，永遠比對不到 pattern
+    return [f for f in git(repo, "ls-tree", "-r", "-z", "--name-only", ref).stdout.split("\0") if f]
 
 
 def worktree_list(repo: Path) -> dict[str, str]:
@@ -200,8 +204,14 @@ def lint(plan: Plan, repo: Path) -> list[Finding]:
     findings: list[Finding] = []
     seen: set[str] = set()
     for t in plan.tasks:
-        if not TASK_ID_RE.match(t.id):
+        if not TASK_ID_RE.fullmatch(t.id):  # fullmatch：`$` 會放行結尾的換行
             findings.append(Finding("error", f"task id {t.id!r} must match {TASK_ID_RE.pattern}"))
+        elif t.id in WINDOWS_RESERVED:
+            findings.append(Finding("error", f"task id {t.id!r} is a reserved Windows device name "
+                                             "and cannot be a worktree folder"))
+        elif git(repo, "check-ref-format", "--branch", plan.branch(t), check=False).returncode != 0:
+            findings.append(Finding("error", f"branch name {plan.branch(t)!r} is not a valid git branch "
+                                             "(check branch_prefix)"))
         if t.id in seen:
             findings.append(Finding("error", f"duplicate task id {t.id!r}"))
         seen.add(t.id)
@@ -316,17 +326,23 @@ def up(plan: Plan, repo: Path) -> list[str]:
 # ---------------------------------------------------------------- check
 
 def changed_files(repo: Path, base: str, branch: str) -> list[str]:
-    out = git(repo, "diff", "--name-only", "--no-renames", f"{base}...refs/heads/{branch}").stdout
-    return [f for f in out.splitlines() if f]
+    out = git(repo, "diff", "-z", "--name-only", "--no-renames", f"{base}...refs/heads/{branch}").stdout
+    return [f for f in out.split("\0") if f]
 
 
 def dirty_files(worktree: Path) -> list[str]:
-    out = git(worktree, "status", "--porcelain", "--untracked-files=all").stdout
-    files = []
-    for line in out.splitlines():
-        name = line[3:].split(" -> ")[-1].strip('"')
-        if name != BRIEF_NAME:
-            files.append(name)
+    # -z：檔名不跳脫；改名／複製項目是 "XY 新名\0舊名\0"，舊名要略過
+    entries = git(worktree, "status", "--porcelain", "-z", "--untracked-files=all").stdout.split("\0")
+    files, i = [], 0
+    while i < len(entries):
+        entry = entries[i]
+        i += 1
+        if len(entry) < 4:
+            continue
+        if entry[0] in "RC" or entry[1] in "RC":
+            i += 1
+        if entry[3:] != BRIEF_NAME:
+            files.append(entry[3:])
     return files
 
 

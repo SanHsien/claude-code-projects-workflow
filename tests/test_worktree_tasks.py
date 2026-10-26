@@ -344,3 +344,65 @@ class LifecycleTests(RepoTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class QuotedPathTests(RepoTestCase):
+    """git 預設把非 ASCII 檔名輸出成 "\\344\\270..."；比對與回報都得拿到真實檔名。"""
+
+    def test_lint_sees_overlap_on_non_ascii_tracked_file(self):
+        self.write("文件/說明.md", "x\n")
+        self.commit("add zh doc")
+        tasks = [{"id": "a", "goal": "g", "paths": ["文件/**"], "verify": "x"},
+                 {"id": "b", "goal": "g", "paths": ["文件/說明.md"], "verify": "x"}]
+        code, out = self.cli("lint", str(self.plan(tasks)))
+        self.assertEqual(code, 1, out)
+        self.assertIn("文件/說明.md is claimed by tasks a, b", out)
+
+    def test_check_accepts_non_ascii_file_inside_scope(self):
+        tasks = [{"id": "docs", "goal": "g", "paths": ["文件/**"], "verify": "x"}]
+        plan = self.plan(tasks)
+        self.cli("up", str(plan))
+        d = self.tmp / "wts" / "docs"
+        self.write("文件/新增.md", "x\n", d)
+        self.commit("zh", d)
+        code, out = self.cli("check", str(plan))
+        self.assertEqual(code, 0, out)
+
+    def test_check_reports_non_ascii_dirty_file_by_real_name(self):
+        tasks = [{"id": "docs", "goal": "g", "paths": ["文件/**"], "verify": "x"}]
+        plan = self.plan(tasks)
+        self.cli("up", str(plan))
+        self.write("文件/草稿.md", "x\n", self.tmp / "wts" / "docs")
+        code, out = self.cli("check", str(plan))
+        self.assertEqual(code, 1)
+        self.assertIn("文件/草稿.md", out)
+
+    def test_dirty_files_handles_renames(self):
+        self.write("舊名.md", "x\n")
+        self.commit("add")
+        run(self.repo, "mv", "舊名.md", "新名.md")
+        self.assertEqual(wt.dirty_files(self.repo), ["新名.md"])
+
+
+class PlanValidationTests(RepoTestCase):
+    def test_task_id_with_trailing_newline_is_rejected(self):
+        tasks = [{"id": "api\n", "goal": "g", "paths": ["src/api/**"], "verify": "x"}]
+        code, out = self.cli("lint", str(self.plan(tasks)))
+        self.assertEqual(code, 1, out)
+        self.assertIn("task id", out)
+
+    def test_windows_reserved_device_names_are_rejected(self):
+        for bad in ("con", "nul", "aux", "com1", "lpt9", "prn"):
+            tasks = [{"id": bad, "goal": "g", "paths": ["src/api/**"], "verify": "x"}]
+            code, out = self.cli("lint", str(self.plan(tasks)))
+            self.assertEqual(code, 1, (bad, out))
+            self.assertIn("reserved", out)
+
+    def test_invalid_branch_prefix_is_an_error_not_a_crash_in_up(self):
+        plan = self.plan(self.TWO_TASKS, branch_prefix="bad prefix/")
+        code, out = self.cli("lint", str(plan))
+        self.assertEqual(code, 1, out)
+        self.assertIn("branch", out)
+        code, out = self.cli("up", str(plan))
+        self.assertEqual(code, 1, out)
+        self.assertFalse((self.tmp / "wts").exists())
