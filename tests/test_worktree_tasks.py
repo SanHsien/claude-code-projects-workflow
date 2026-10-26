@@ -342,9 +342,6 @@ class LifecycleTests(RepoTestCase):
         self.assertIn("task/ui", run(self.repo, "branch", "--list"))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class QuotedPathTests(RepoTestCase):
     """git 預設把非 ASCII 檔名輸出成 "\\344\\270..."；比對與回報都得拿到真實檔名。"""
@@ -377,6 +374,19 @@ class QuotedPathTests(RepoTestCase):
         self.assertEqual(code, 1)
         self.assertIn("文件/草稿.md", out)
 
+    def test_check_reports_non_ascii_conflict_by_real_name(self):
+        tasks = [{"id": "a", "goal": "g", "paths": ["文件/**"], "verify": "x"},
+                 {"id": "b", "goal": "g", "paths": ["文件/*.txt"], "verify": "x"}]
+        plan = self.plan(tasks)
+        self.cli("up", str(plan))
+        for name in ("a", "b"):
+            w = self.tmp / "wts" / name
+            self.write("文件/筆記.txt", f"from {name}\n", w)
+            self.commit(name, w)
+        code, out = self.cli("check", str(plan))
+        self.assertEqual(code, 1, out)
+        self.assertIn("conflicts in: 文件/筆記.txt", out)
+
     def test_dirty_files_handles_renames(self):
         self.write("舊名.md", "x\n")
         self.commit("add")
@@ -406,3 +416,7 @@ class PlanValidationTests(RepoTestCase):
         code, out = self.cli("up", str(plan))
         self.assertEqual(code, 1, out)
         self.assertFalse((self.tmp / "wts").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

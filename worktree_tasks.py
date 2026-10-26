@@ -374,7 +374,7 @@ def check(plan: Plan, repo: Path) -> list[Finding]:
     current = git(repo, "rev-parse", f"{plan.base}^{{commit}}").stdout.strip()
     for t in present:
         branch = plan.branch(t)
-        proc = git(repo, "merge-tree", "--write-tree", "--name-only", "--no-messages",
+        proc = git(repo, "-c", "core.quotepath=false", "merge-tree", "--write-tree", "--name-only", "--no-messages",
                    current, f"refs/heads/{branch}", check=False)
         lines = proc.stdout.splitlines()
         if proc.returncode == 1:
