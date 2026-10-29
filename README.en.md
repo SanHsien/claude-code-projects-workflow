@@ -76,7 +76,7 @@ python worktree_tasks.py lint plan.json --json
 
 | Command | ERROR (exit 1) | WARNING |
 |---|---|---|
-| `lint` | an **existing** file claimed by two tasks; bad or duplicate id; missing goal; path outside the repo; missing base | two tasks **may** create the same new file (compares the directory before the first wildcard); no verify command; context file missing |
+| `lint` | an **existing** file claimed by two tasks; bad id, trailing newline in id, Windows reserved name, or duplicate id; `branch_prefix` yields an invalid branch name; missing goal; path outside the repo; missing base | two tasks **may** create the same new file (compares the directory before the first wildcard); no verify command; context file missing |
 | `check` | branch changed files outside its paths; uncommitted changes in a worktree; merging back in plan order conflicts | branch missing or has no commits |
 | `down` | worktree has uncommitted changes (kept) | branch not merged into base (kept) |
 
