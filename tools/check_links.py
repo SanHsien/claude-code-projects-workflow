@@ -16,6 +16,7 @@ stay offline and deterministic so it can sit inside the canonical gate.
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -61,6 +62,64 @@ def iter_documents() -> list[Path]:
     )
 
 
+def check_casing(base: Path, file_part: str) -> tuple[bool, str | None]:
+    """Check whether every component of file_part exists with exact casing.
+
+    Returns (True, actual_path) if every part matches exactly,
+    (False, actual_path) if the target exists but has a case mismatch,
+    or (False, None) if the target does not exist.
+    """
+    cur = base.resolve()
+    rel_path = Path(file_part.replace("\\", "/"))
+    if rel_path.is_absolute():
+        cur = Path(cur.anchor)
+        parts = rel_path.parts[1:]
+    else:
+        parts = rel_path.parts
+
+    if not parts:
+        return (base / file_part).resolve().exists(), ""
+
+    actual_parts: list[str] = []
+    has_mismatch = False
+
+    for part in parts:
+        if part in (".", ""):
+            continue
+        if part == "..":
+            actual_parts.append("..")
+            cur = cur.parent
+            continue
+        try:
+            entries = os.listdir(cur)
+        except OSError:
+            return False, None
+        if part in entries:
+            actual_parts.append(part)
+            cur = cur / part
+        else:
+            lower_map = {e.lower(): e for e in entries}
+            if part.lower() in lower_map:
+                has_mismatch = True
+                actual_name = lower_map[part.lower()]
+                actual_parts.append(actual_name)
+                cur = cur / actual_name
+            else:
+                return False, None
+
+    actual = "/".join(actual_parts)
+    return (not has_mismatch), actual
+
+
+def check_case_mismatch(base: Path, file_part: str, target: str) -> str | None:
+    """Check if any path segment in file_part has a case mismatch on disk."""
+    match, actual = check_casing(base, file_part)
+    if not match and actual is not None:
+        detail = f" (on disk: '{actual}')" if actual else ""
+        return f"{target} -> case mismatch{detail}"
+    return None
+
+
 def missing_target(path: Path, target: str) -> str | None:
     """Return a description of the broken link, or None when it resolves."""
     target = target.strip().strip("<>")
@@ -70,9 +129,13 @@ def missing_target(path: Path, target: str) -> str | None:
     file_part = unquote(target.split()[0].split("#", 1)[0])
     if not file_part:
         return None
-    resolved = (path.parent / file_part).resolve()
-    if resolved.exists():
+    match, actual = check_casing(path.parent, file_part)
+    if match:
         return None
+    if actual is not None:
+        detail = f" (on disk: '{actual}')" if actual else ""
+        return f"{target} -> case mismatch{detail}"
+    resolved = (path.parent / file_part).resolve()
     try:
         shown = resolved.relative_to(ROOT)
     except ValueError:

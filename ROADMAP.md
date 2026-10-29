@@ -5,12 +5,11 @@
 
 ## 現況
 
-public、非 fork 的單檔工具 `worktree_tasks.py`（只用 Python 標準函式庫與 git）：平行 AI 任務的 git worktree 派工前範圍檢查與合併前衝突預測，另附範本與 `docs/background-notes.md` 閱讀筆記。健康：2026-10-29 查到 open issue 0、open PR 0、Dependabot 與 Code scanning 告警各 0，`CI`、`CodeQL` 在 `main` 最近一次皆 success；沒有 release（2026-10-29 `gh` 查詢）。2026-10-26 的深度掃描修復已全部在 `main`，本 repo 沒有等不到條件就卡住的項目，近期剩下 `check_links.py` 大小寫檢查，其餘為等外部條件的工作。
+public、非 fork 的單檔工具 `worktree_tasks.py`（只用 Python 標準函式庫與 git）：平行 AI 任務的 git worktree 派工前範圍檢查與合併前衝突預測，另附範本與 `docs/background-notes.md` 閱讀筆記。健康：2026-10-29 查到 open issue 0、open PR 0、Dependabot 與 Code scanning 告警各 0，`CI`、`CodeQL` 在 `main` 最近一次皆 success；沒有 release（2026-10-29 `gh` 查詢）。2026-10-26 的深度掃描修復已全部在 `main`，本 repo 沒有等不到條件就卡住的項目，近期可以直接動手的項目已全數完成，其餘為等外部條件的工作。
 
 ## 近期：可以直接動手
-| 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
-| --- | --- | --- | --- | --- |
-| `tools/check_links.py` 抓出大小寫錯誤的連結 | Windows 大小寫不分，`readme.md` 這類連結本機通過、GitHub 上 404 | `tests/` 新增測試：大小寫不符的連結回報失敗，正確大小寫仍通過；`python -m unittest discover -s tests -v` 與 `python tools/check_links.py` 綠 | Claude Sonnet | `tools/check_links.py:78`（以 `exists()` 判斷）；深掃報告（2026-10-26）「刻意不修」 |
+
+（目前無待辦項目）
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |
